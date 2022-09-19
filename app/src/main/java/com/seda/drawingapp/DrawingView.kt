@@ -111,6 +111,12 @@ mDrawingPath = CustomPath(color,mBrushSize)
 
     }
 
+
+    fun setColor(newColor:String){
+        color = Color.parseColor(newColor)
+        mDrawPaint!!.color = color
+    }
+
     internal inner class CustomPath(var color:Int,var brushThickness:Float): Path() {
 
     }
