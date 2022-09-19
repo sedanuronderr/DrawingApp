@@ -35,6 +35,7 @@
     android:layout_height="25dp"
     android:tag="@color/skin"
     android:background="@color/skin"
+    android:onClick="paintClicked"
     android:src="@drawable/pallet_normal"
     >
 
@@ -43,6 +44,7 @@
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:tag="@color/yellow"
+            android:onClick="paintClicked"
             android:background="@color/yellow"
             android:src="@drawable/pallet_normal">
 
@@ -51,6 +53,7 @@
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:tag="@color/red"
+            android:onClick="paintClicked"
             android:background="@color/red"
             android:src="@drawable/pallet_normal">
 
@@ -59,6 +62,7 @@
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:tag="@color/green"
+            android:onClick="paintClicked"
             android:background="@color/green"
             android:src="@drawable/pallet_normal">
 
@@ -67,6 +71,7 @@
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:tag="@color/blue"
+            android:onClick="paintClicked"
             android:background="@color/blue"
             android:src="@drawable/pallet_normal">
 
@@ -76,6 +81,7 @@
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:tag="@color/lollipop"
+            android:onClick="paintClicked"
             android:background="@color/lollipop"
             android:src="@drawable/pallet_normal">
 
@@ -85,8 +91,19 @@
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:tag="@color/random"
+            android:onClick="paintClicked"
             android:background="@color/random"
             android:src="@drawable/pallet_normal">
+
+        </ImageButton>
+        <ImageButton
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:tag="@color/white"
+            android:onClick="paintClicked"
+            android:background="@color/white"
+            android:src="@drawable/pallet_normal"
+            >
 
         </ImageButton>
     </LinearLayout>
