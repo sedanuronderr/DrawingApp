@@ -132,15 +132,23 @@
     app:layout_constraintBottom_toBottomOf="parent"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent">
-    <ImageView
+    <ImageButton
         android:id="@+id/ib_gallery"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:scaleType="fitXY"
-
+        android:layout_margin="5dp"
         android:src="@drawable/img">
 
-    </ImageView>
+    </ImageButton>
+    <ImageButton
+        android:id="@+id/ib_undo"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:contentDescription="image"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_undo"
+        android:visibility="visible" />
     <ImageButton
         android:id="@+id/brush"
         android:layout_width="50dp"
@@ -148,8 +156,7 @@
         android:layout_margin="5dp"
         android:scaleType="fitXY"
 
-        android:src="@drawable/ic_brush"
-        >
+        android:src="@drawable/ic_brush">
 
     </ImageButton>
 </LinearLayout>

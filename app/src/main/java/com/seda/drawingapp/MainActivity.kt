@@ -4,9 +4,11 @@ import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Intent
 import android.media.Image
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.View
 import android.widget.ImageButton
 import android.widget.Toast
@@ -21,6 +23,15 @@ import com.seda.drawingapp.databinding.DialogBrushSizeBinding
 class MainActivity : AppCompatActivity() {
 private lateinit var binding : ActivityMainBinding
 private var mImageButtonCurrentPaint:ImageButton?=null
+    val openGalleryLuncher:ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+            result->
+
+            if(result.resultCode == RESULT_OK && result.data!= null){
+                binding.ivBackground.setImageURI(result.data?.data)
+            }
+        }
+
    val requestPermission:ActivityResultLauncher<Array<String>> =
        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){
  permissions->
@@ -34,6 +45,8 @@ private var mImageButtonCurrentPaint:ImageButton?=null
                        "Permission granted for location",
                        Toast.LENGTH_LONG )
                        .show()
+ val pickIntent = Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+openGalleryLuncher.launch(pickIntent)
                }
                else{
                    if(permissionName == Manifest.permission.READ_EXTERNAL_STORAGE){
@@ -63,10 +76,22 @@ binding.drawingView.setSizeForBrush(20.toFloat())
         binding.brush.setOnClickListener {
             showBrushSizeChooserDialog()
         }
+        binding.ibGallery.setOnClickListener {
+            requestStoragePermission()
+        }
+
+
+        binding.ibUndo.setOnClickListener {
+            binding.drawingView.onClickUndo()
+        }
+
 
     }
+
+
+
     private fun showBrushSizeChooserDialog(){
-        var brushbinding = DialogBrushSizeBinding.inflate(layoutInflater)
+        val brushbinding = DialogBrushSizeBinding.inflate(layoutInflater)
 
             val brushDialog = Dialog(this)
         brushDialog.setContentView(brushbinding.root)
@@ -96,9 +121,7 @@ binding.drawingView.setSizeForBrush(20.toFloat())
         }
         brushDialog.show()
 
-binding.ibGallery.setOnClickListener {
-requestStoragePermission()
-}
+
 
     }
 

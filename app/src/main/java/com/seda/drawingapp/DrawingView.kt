@@ -19,9 +19,19 @@ class DrawingView(context: Context,attrs: AttributeSet) :View(context,attrs){
     private var canvas:Canvas? = null
 
     private val mPaths = ArrayList<CustomPath>()
+private val mUndoPaths = ArrayList<CustomPath>()
+
     init {
         setUpDrawing()
     }
+
+fun onClickUndo(){
+if(mPaths.size > 0){
+    mUndoPaths.add(mPaths.removeAt(mPaths.size-1))
+invalidate()
+}
+
+}
 
     private fun setUpDrawing() {
         mDrawPaint = Paint()
