@@ -4,7 +4,12 @@
     package="com.seda.drawingapp"
 
     >
-<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"></uses-permission>
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE">
+
+</uses-permission>
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE">
+
+  </uses-permission>
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -24,6 +29,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        //exported = dışa aktarmanın yaptığı şey ise içerik sağlayıcının diğer
+        //uygulamaların kullanımına açık olup olmadığını göstermek
+
+        <provider
+            android:authorities="com.seda.drawingapp.fileprovider"
+            android:name="androidx.core.content.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            >
+     <meta-data
+         android:name="android.support.FILE_PROVIDER_PATHS"
+         android:resource="@xml/path"
+         >
+
+     </meta-data>
+        </provider>
     </application>
 
 </manifest>
