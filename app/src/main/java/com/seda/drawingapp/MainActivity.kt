@@ -5,6 +5,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -12,7 +13,9 @@ import android.media.Image
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -20,8 +23,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
+import androidx.lifecycle.lifecycleScope
 import com.seda.drawingapp.databinding.ActivityMainBinding
 import com.seda.drawingapp.databinding.DialogBrushSizeBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
 private lateinit var binding : ActivityMainBinding
@@ -34,6 +44,7 @@ private var mImageButtonCurrentPaint:ImageButton?=null
                 binding.ivBackground.setImageURI(result.data?.data)
             }
         }
+
 
    val requestPermission:ActivityResultLauncher<Array<String>> =
        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){
@@ -72,13 +83,16 @@ openGalleryLuncher.launch(pickIntent)
 
         setContentView(binding.root)
 val paintColors = binding.paintColor
-        mImageButtonCurrentPaint =paintColors[1] as ImageButton
+        mImageButtonCurrentPaint = paintColors[1] as ImageButton
          mImageButtonCurrentPaint!!.setImageDrawable(ContextCompat.getDrawable(this,R.drawable.pallet_pressed))
 
-binding.drawingView.setSizeForBrush(20.toFloat())
+         binding.drawingView.setSizeForBrush(20.toFloat())
+
         binding.brush.setOnClickListener {
             showBrushSizeChooserDialog()
         }
+
+
         binding.ibGallery.setOnClickListener {
             requestStoragePermission()
         }
@@ -88,7 +102,14 @@ binding.drawingView.setSizeForBrush(20.toFloat())
             binding.drawingView.onClickUndo()
         }
 
+        binding.ibSave.setOnClickListener {
+            if(isReadStorageAllowed()){
+                lifecycleScope.launch{
 
+                    saveBitmapFile(getBitmapFromView(binding.flDrawingViewContainer))
+                }
+            }
+        }
     }
 
 
@@ -102,15 +123,14 @@ binding.drawingView.setSizeForBrush(20.toFloat())
             brushDialog.setTitle("Brush Size:")
 
         val smallBtn = brushbinding.ibSmallBrush
-    smallBtn.setOnClickListener {
+         smallBtn.setOnClickListener {
         binding.drawingView.setSizeForBrush(10.toFloat())
 
         brushDialog.dismiss()
 
+    }
 
 
-
-}
         val mediumBtn = brushbinding.ibMediumBrush
         mediumBtn.setOnClickListener {
             binding.drawingView.setSizeForBrush(20.toFloat())
@@ -129,6 +149,15 @@ binding.drawingView.setSizeForBrush(20.toFloat())
     }
 
 
+
+   private fun isReadStorageAllowed():Boolean{
+          val result = ContextCompat.checkSelfPermission(this,
+          Manifest.permission.READ_EXTERNAL_STORAGE)
+
+       return result == PackageManager.PERMISSION_GRANTED
+      }
+
+//iznin neden istendiğini belirten fonksiyon
     private fun requestStoragePermission(){
         //Android sistemi, kullanıcıya bir açıklama göstermenin gerekli
         // olup olmadığına karar vermemizi kolaylaştıran bir metod sunmuştur:
@@ -146,11 +175,13 @@ binding.drawingView.setSizeForBrush(20.toFloat())
              showRationaleDialog("Kids Drawing App","Kids Drawing App" + "needs to Access Your External Storage")
          }
         else{
-            requestPermission.launch(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE))
+            requestPermission.launch(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE))
          }
 
 
     }
+
+
     fun paintClicked(view: View){
         if(view !== mImageButtonCurrentPaint){
             val imageButton = view as ImageButton
@@ -164,15 +195,16 @@ binding.drawingView.setSizeForBrush(20.toFloat())
             mImageButtonCurrentPaint!!.setImageDrawable(ContextCompat.getDrawable
                 (this,R.drawable.pallet_normal))
 
-    mImageButtonCurrentPaint=view
+             mImageButtonCurrentPaint=view
 
         }
 
     }
+
+
     private fun showRationaleDialog(
         title: String,
-        message: String,
-    ) {
+        message: String,) {
         val builder: AlertDialog.Builder = AlertDialog.Builder(this)
         builder.setTitle(title)
             .setMessage(message)
@@ -181,6 +213,7 @@ binding.drawingView.setSizeForBrush(20.toFloat())
             }
         builder.create().show()
     }
+
     private fun getBitmapFromView(view: View): Bitmap {
 
         //Define a bitmap with the same size as the view.
@@ -202,4 +235,45 @@ binding.drawingView.setSizeForBrush(20.toFloat())
         //return the bitmap
         return returnedBitmap
     }
+
+  private suspend fun saveBitmapFile(mBitmap :Bitmap?):String{
+      var result =""
+      withContext(Dispatchers.IO){
+          if (mBitmap != null){
+              try {
+                  // FileOutputStream sınıfı,
+                  // dosyalara veri (bayt cinsinden) yazmak için kullanılabilir.
+                  var bytes = ByteArrayOutputStream()
+                  mBitmap.compress(Bitmap.CompressFormat.PNG,90,bytes)
+//Cache Storage : Geçici dosyaların tutulduğu alandır.
+// Uygulama kaldırıldığında bu kısımda bulunan dosyalar da silinir.
+// Kısıtlı bir alan olduğundan buradaki dosyaları işimiz bitince silmeliyiz.
+                  val f = File(externalCacheDir?.absoluteFile.toString() + File.separator + "DrawingApp_"+ System.currentTimeMillis() /1000 + ".png")
+                 val fo = FileOutputStream(f)
+                  fo.write(bytes.toByteArray())
+                   fo.close()
+
+                  result = f.absolutePath
+
+                  runOnUiThread {
+                      if(result.isNotEmpty()){
+                          Toast.makeText(this@MainActivity,
+                              "File saved successfully:$result",
+                              Toast.LENGTH_LONG
+                          ).show()
+                      }else{
+                          Toast.makeText(this@MainActivity,
+                              "Something went wrong while saving the file",
+                              Toast.LENGTH_LONG
+                          ).show()
+                      }
+                  }
+              }catch (e:Exception){
+                  result = ""
+                  e.printStackTrace()
+              }
+          }
+      }
+return  result
+  }
 }
