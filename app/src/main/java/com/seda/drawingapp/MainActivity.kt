@@ -10,6 +10,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.media.Image
+import android.media.MediaScannerConnection
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
@@ -36,6 +37,8 @@ import java.io.FileOutputStream
 class MainActivity : AppCompatActivity() {
 private lateinit var binding : ActivityMainBinding
 private var mImageButtonCurrentPaint:ImageButton?=null
+    var customProgressDialog: Dialog? = null
+
     val openGalleryLuncher:ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
             result->
@@ -103,6 +106,7 @@ val paintColors = binding.paintColor
         }
 
         binding.ibSave.setOnClickListener {
+            showProgressDialog()
             if(isReadStorageAllowed()){
                 lifecycleScope.launch{
 
@@ -256,11 +260,13 @@ val paintColors = binding.paintColor
                   result = f.absolutePath
 
                   runOnUiThread {
+                      cancelProgressDialog()
                       if(result.isNotEmpty()){
                           Toast.makeText(this@MainActivity,
                               "File saved successfully:$result",
                               Toast.LENGTH_LONG
                           ).show()
+                          shareImage(result)
                       }else{
                           Toast.makeText(this@MainActivity,
                               "Something went wrong while saving the file",
@@ -276,4 +282,42 @@ val paintColors = binding.paintColor
       }
 return  result
   }
+
+    private fun showProgressDialog() {
+        customProgressDialog = Dialog(this@MainActivity)
+
+        /*Set the screen content from a layout resource.
+        The resource will be inflated, adding all top-level views to the screen.*/
+        customProgressDialog?.setContentView(R.layout.dialog_custom_progress)
+
+        //Start the dialog and display it on screen.
+        customProgressDialog?.show()
+    }
+    private fun cancelProgressDialog() {
+        if (customProgressDialog != null) {
+            customProgressDialog?.dismiss()
+            customProgressDialog = null
+        }
+    }
+
+
+    private fun shareImage(result:String){
+        //medya tarayıcı hizmeti dosyadan meat verileri okuyacak
+        //ve dosyayı medya içerik sağlayıcısına ekleyecektir
+        MediaScannerConnection.scanFile(this, arrayOf(result),null){
+          path,uri ->
+//Uri (uniform resource identifier) yani nizami kaynak belirteci,
+// bir kaynağı ya da
+// veriyi isimlendirmek için kullanılan bir standarttır.
+                val shareIntent = Intent()
+            shareIntent.action = Intent.ACTION_SEND
+            shareIntent.putExtra(Intent.EXTRA_STREAM,uri)
+            shareIntent.type = "image/png"
+            //Uygulama seçim diyalogu gösterme
+            startActivity(Intent.createChooser(shareIntent,"Share"))
+
+        }
+
+    }
+
 }
